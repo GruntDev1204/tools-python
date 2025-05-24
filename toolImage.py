@@ -19,7 +19,6 @@ def openFolder(path):
             f"Thư mục {path} chưa được tạo hoặc không tồn tại!",
         )
 
-
 def removeBackgroundGui():
     filePath = filedialog.askopenfilename(
         title="Chọn ảnh để xóa nền",
@@ -45,7 +44,6 @@ def removeBackgroundGui():
         messagebox.showerror("❌ Lỗi", "File không phải là ảnh hợp lệ.")
     except Exception as e:
         messagebox.showerror("❌ Lỗi", f"Không thể xử lý ảnh:\n{str(e)}")
-
 
 def resizeImageGui():
     filePath = filedialog.askopenfilename(
@@ -80,7 +78,6 @@ def resizeImageGui():
         messagebox.showerror("❌ Lỗi", "File không phải là ảnh hợp lệ.")
     except Exception as e:
         messagebox.showerror("❌ Lỗi", f"Không thể resize ảnh:\n{str(e)}")
-
 
 def createGui():
     root = Tk()
@@ -140,7 +137,6 @@ def createGui():
     btnOpenResized.pack(pady=(0, 15))
 
     root.mainloop()
-
 
 if __name__ == "__main__":
     createGui()

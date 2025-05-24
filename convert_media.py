@@ -4,9 +4,11 @@ from tkinter import Tk, Button, Label, filedialog, messagebox, Toplevel, ttk
 from PIL import Image
 from moviepy.editor import VideoFileClip
 import pillow_heif
+import traceback
 
 DEFAULT_OUTPUT_FOLDER = r"D:\app\tool\media\toolConvert"
 pillow_heif.register_heif_opener()
+os.environ["IMAGEIO_FFMPEG_EXE"] = r"E:\\ProgramFile\\ffmpeg\\bin\\ffmpeg.exe"
 
 
 def openFolder(path):
@@ -17,7 +19,6 @@ def openFolder(path):
             subprocess.run(["open" if sys.platform == "darwin" else "xdg-open", path])
     else:
         messagebox.showerror("❌ Lỗi", f"Thư mục không tồn tại:\n{path}")
-
 
 def convertHeicToPngOrJpg():
     filePath = filedialog.askopenfilename(
@@ -44,7 +45,6 @@ def convertHeicToPngOrJpg():
     except Exception as e:
         messagebox.showerror("❌ Lỗi", f"Không thể chuyển đổi ảnh:\n{str(e)}")
 
-
 def convertVideoToMp4():
     filePath = filedialog.askopenfilename(
         title="Chọn file video để chuyển sang MP4",
@@ -61,7 +61,7 @@ def convertVideoToMp4():
 
     loading_popup = Toplevel()
     loading_popup.title("⏳ Đang chuyển đổi video...")
-    loading_popup.geometry("300x100")
+    loading_popup.geometry("300x200")
     Label(loading_popup, text="Đang xử lý video, vui lòng chờ...").pack(pady=10)
     pb = ttk.Progressbar(loading_popup, mode="indeterminate")
     pb.pack(fill="x", padx=20, pady=5)
@@ -71,12 +71,14 @@ def convertVideoToMp4():
 
     try:
         video = VideoFileClip(filePath)
+        if video is None:
+            raise Exception("VideoFileClip trả về None. Có thể file video bị lỗi hoặc ffmpeg không hoạt động.")
         baseName = os.path.splitext(os.path.basename(filePath))[0]
         output_folder = os.path.join(DEFAULT_OUTPUT_FOLDER, "mp4_converter")
         outputPath = os.path.join(output_folder, f"{baseName}.mp4")
 
         os.makedirs(output_folder, exist_ok=True)
-        video.write_videofile(outputPath, codec="libx264")
+        video.write_videofile(outputPath, codec="libx264" , logger=None)
         video.close()
 
         loading_popup.destroy()
@@ -88,8 +90,8 @@ def convertVideoToMp4():
             openFolder(output_folder)
     except Exception as e:
         loading_popup.destroy()
+        # messagebox.showerror("❌ Lỗi", f"Không thể chuyển đổi video:\n{str(e)}\n\n{traceback.format_exc()}")
         messagebox.showerror("❌ Lỗi", f"Không thể chuyển đổi video:\n{str(e)}")
-
 
 def extractAudioFromMp4():
     filePath = filedialog.askopenfilename(
@@ -100,7 +102,7 @@ def extractAudioFromMp4():
 
     loading_popup = Toplevel()
     loading_popup.title("⏳ Đang tách audio từ video...")
-    loading_popup.geometry("300x100")
+    loading_popup.geometry("300x200")
     Label(loading_popup, text="Đang xử lý audio, vui lòng chờ...").pack(pady=10)
     pb = ttk.Progressbar(loading_popup, mode="indeterminate")
     pb.pack(fill="x", padx=20, pady=5)
@@ -115,7 +117,7 @@ def extractAudioFromMp4():
         outputPath = os.path.join(output_folder, f"{baseName}.mp3")
 
         os.makedirs(output_folder, exist_ok=True)
-        video.audio.write_audiofile(outputPath)
+        video.audio.write_audiofile(outputPath , logger=None)
         video.close()
 
         loading_popup.destroy()
@@ -128,7 +130,7 @@ def extractAudioFromMp4():
     except Exception as e:
         loading_popup.destroy()
         messagebox.showerror("❌ Lỗi", f"Không thể tách audio:\n{str(e)}")
-
+        messagebox.showerror("❌ Lỗi", f"Không thể chuyển đổi video:\n{str(e)}\n\n{traceback.format_exc()}")
 
 def muteVideoMp4():
     filePath = filedialog.askopenfilename(
@@ -139,7 +141,7 @@ def muteVideoMp4():
 
     loading_popup = Toplevel()
     loading_popup.title("⏳ Đang tắt tiếng video...")
-    loading_popup.geometry("300x100")
+    loading_popup.geometry("300x200")
     Label(loading_popup, text="Đang xử lý video, vui lòng chờ...").pack(pady=10)
     pb = ttk.Progressbar(loading_popup, mode="indeterminate")
     pb.pack(fill="x", padx=20, pady=5)
@@ -156,7 +158,7 @@ def muteVideoMp4():
         os.makedirs(output_folder, exist_ok=True)
 
         video_without_audio = video.without_audio()
-        video_without_audio.write_videofile(outputPath, codec="libx264")
+        video_without_audio.write_videofile(outputPath, codec="libx264" , logger=None)
         video.close()
 
         loading_popup.destroy()
@@ -169,7 +171,6 @@ def muteVideoMp4():
     except Exception as e:
         loading_popup.destroy()
         messagebox.showerror("❌ Lỗi", f"Không thể tắt tiếng video:\n{str(e)}")
-
 
 def createConverterGui():
     root = Tk()
@@ -244,7 +245,6 @@ def createConverterGui():
     btnOpenFolder.pack(side="bottom", pady=15)
 
     root.mainloop()
-
 
 if __name__ == "__main__":
     createConverterGui()
